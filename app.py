@@ -1,10 +1,14 @@
 import streamlit as st
 import pickle
+import os
 
-# Load model
-model = pickle.load(open("ride_price_model.pkl", "rb"))
-le = pickle.load(open("vehicle_encoder.pkl", "rb"))
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+model_path = os.path.join(BASE_DIR, "ride_price_model.pkl")
+encoder_path = os.path.join(BASE_DIR, "vehicle_encoder.pkl")
+
+model = pickle.load(open(model_path, "rb"))
+le = pickle.load(open(encoder_path, "rb"))
 # =========================
 # MYSQL CONNECTION (Railway)
 # =========================
