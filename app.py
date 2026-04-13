@@ -47,32 +47,43 @@ if st.button("🚀 Predict Price"):
     # =========================
     # REAL-WORLD RULE PRICING 🔥
     # =========================
-    base_fare = 30
-    price_per_km = 15
 
+    # Base fare (higher)
+    base_fare = 50
+    
+    # Price per km (better)
+    price_per_km = 18
+    
+    # Minimum fare (important 🔥)
+    minimum_fare = 120
+    
+    # Vehicle multipliers (more realistic)
     vehicle_factor = {
         'Auto': 1.0,
-        'Bike': 0.8,
-        'eBike': 0.85,
-        'Mini': 1.2,
-        'Prime Plus': 1.4,
-        'Prime Sedan': 1.5,
-        'Prime SUV': 1.8
+        'Bike': 0.7,
+        'eBike': 0.75,
+        'Mini': 1.3,
+        'Prime Plus': 1.5,
+        'Prime Sedan': 1.7,
+        'Prime SUV': 2.0
     }
-
+    
     # Base price
     rule_price = base_fare + (distance * price_per_km)
-
-    # Vehicle multiplier
+    
+    # Apply vehicle factor
     rule_price *= vehicle_factor.get(vehicle, 1.0)
-
-    # Driver rating adjustment
+    
+    # Apply minimum fare
+    rule_price = max(rule_price, minimum_fare)
+    
+    # Driver rating effect
     rule_price *= (1 + (driver_rating - 3) * 0.05)
-
-    # Optional surge pricing
+    
+    # Surge pricing
     time_total = v_tat + c_tat
-    if time_total > 30:
-        rule_price *= 1.2
+    if time_total > 20:
+        rule_price *= 1.25
 
     # Final price
     final_price = rule_price
