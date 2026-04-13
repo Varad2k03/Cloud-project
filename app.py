@@ -114,5 +114,3 @@ if st.button("🚀 Predict Price"):
 
     cursor.execute(query, values)
     conn.commit()
-
-    st.info("📦 Data saved to database successfully!")
