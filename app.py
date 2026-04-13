@@ -9,6 +9,7 @@ encoder_path = os.path.join(BASE_DIR, "vehicle_encoder.pkl")
 
 model = pickle.load(open(model_path, "rb"))
 le = pickle.load(open(encoder_path, "rb"))
+
 # =========================
 # MYSQL CONNECTION (Railway)
 # =========================
@@ -37,13 +38,19 @@ c_tat = st.number_input("Customer TAT")
 # =========================
 if st.button("Predict Price"):
 
+    # =========================
+    # FEATURE ENGINEERING
+    # =========================
     vehicle_encoded = le.transform([vehicle])[0]
 
     time_total = v_tat + c_tat
     distance_rating = distance * driver_rating
     distance_time = distance / (time_total + 1)
 
-    prediction = model.predict([[
+    # =========================
+    # ML PREDICTION
+    # =========================
+    ml_price = model.predict([[
         distance,
         vehicle_encoded,
         driver_rating,
@@ -53,7 +60,49 @@ if st.button("Predict Price"):
         distance_time
     ]])[0]
 
-    st.success(f"Predicted Price: ₹{prediction:.2f}")
+    # =========================
+    # REAL-WORLD RULE PRICING 🔥
+    # =========================
+    base_fare = 30
+    price_per_km = 15
+
+    vehicle_factor = {
+        'Auto': 1.0,
+        'Bike': 0.8,
+        'eBike': 0.85,
+        'Mini': 1.2,
+        'Prime Plus': 1.4,
+        'Prime Sedan': 1.5,
+        'Prime SUV': 1.8
+    }
+
+    # Base rule price
+    rule_price = base_fare + (distance * price_per_km)
+
+    # Apply vehicle multiplier
+    rule_price *= vehicle_factor.get(vehicle, 1.0)
+
+    # Driver rating adjustment
+    rule_price *= (1 + (driver_rating - 3) * 0.05)
+
+    # Optional: surge pricing
+    if time_total > 30:
+        rule_price *= 1.2
+
+    # =========================
+    # FINAL HYBRID PRICE 🔥
+    # =========================
+    final_price = (0.3 * ml_price) + (0.7 * rule_price)
+
+    # =========================
+    # DISPLAY RESULT
+    # =========================
+    st.success(f"💰 Estimated Ride Price: ₹{final_price:.2f}")
+
+    # Optional breakdown (looks professional 🔥)
+    with st.expander("📊 Price Breakdown"):
+        st.write(f"ML Prediction: ₹{ml_price:.2f}")
+        st.write(f"Rule-based Price: ₹{rule_price:.2f}")
 
     # =========================
     # STORE IN MYSQL
@@ -64,7 +113,15 @@ if st.button("Predict Price"):
     VALUES (%s,%s,%s,%s,%s,%s,%s)
     """
 
-    values = (distance, vehicle, driver_rating, customer_rating, v_tat, c_tat, prediction)
+    values = (
+        distance,
+        vehicle,
+        driver_rating,
+        customer_rating,
+        v_tat,
+        c_tat,
+        final_price   # 🔥 store corrected price
+    )
 
     cursor.execute(query, values)
     conn.commit()
