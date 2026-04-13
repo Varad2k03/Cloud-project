@@ -68,5 +68,3 @@ if st.button("Predict Price"):
 
     cursor.execute(query, values)
     conn.commit()
-
-    st.success("Saved to database ✅")
