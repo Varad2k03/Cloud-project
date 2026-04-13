@@ -1,6 +1,5 @@
 import streamlit as st
 import pickle
-import mysql.connector
 
 # Load model
 model = pickle.load(open("ride_price_model.pkl", "rb"))
